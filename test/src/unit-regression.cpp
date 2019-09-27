@@ -159,6 +159,12 @@ bool operator==(Data const& lhs, Data const& rhs)
 
 using float_json = nlohmann::basic_json<std::map, std::vector, std::string, bool, std::int64_t, std::uint64_t, float>;
 
+/////////////////////////////////////////////////////////////////////
+// for #1763
+/////////////////////////////////////////////////////////////////////
+template<class K, class V, class dummy_compare, class A>
+using my_fifo_map = nlohmann::fifo_map<K, V, nlohmann::fifo_map_compare<K>, A>;
+using fifo_json = nlohmann::basic_json<my_fifo_map>;
 
 TEST_CASE("regression tests")
 {
@@ -1819,6 +1825,21 @@ TEST_CASE("regression tests")
 
         CHECK(j.contains(jptr1));
         CHECK(j.contains(jptr2));
+    }
+
+    SECTION("issue #1763 - Unexpected behavior with fifo_map json when copy and append")
+    {
+        fifo_json j1;
+        j1["Ender"] = "The Formics are intelligent";
+        j1["Amstrong"] = "Walking on the moon";
+        j1["Fairytale"] = "Once upon a time";
+
+        fifo_json jj(j1);
+        jj["My settings"] = {};
+        jj["My settings"]["Darwin"] = "Evolution of Species";
+        jj["Abracadabra"] = "Ta-Da";
+
+        std::cout << jj << std::endl;
     }
 }
 
